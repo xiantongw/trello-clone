@@ -15,7 +15,6 @@ generator client {
 }
 
 model Board {
-  id String @id @default(uuid())
-
+  id    String @id @default(uuid())
   title String
 }
