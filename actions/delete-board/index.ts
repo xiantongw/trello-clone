@@ -5,32 +5,34 @@ import { InputType, ReturnType } from "./types";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { createSafeAction } from "@/lib/create-safe-action";
-import { CreateBoard } from "./schema";
+import { DeleteBoard } from "./schema";
+import { redirect } from "next/navigation";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
-  // <ReturnType> is ActionState type, which is defined in types.ts
-  const { userId } = auth();
-  if (!userId) {
+  const { userId, orgId } = auth();
+  if (!userId || !orgId) {
     return {
       error: "Unauthorized",
     };
   }
 
-  const { title } = data;
+  const { id } = data;
   let board;
-
   try {
-    board = await db.board.create({
-      data: { title },
+    board = await db.board.delete({
+      where: {
+        id,
+        orgId,
+      },
     });
   } catch (error) {
     return {
-      error: "Failed to create",
+      error: "Failed to delete",
     };
   }
 
-  revalidatePath(`/board/${board.id}`);
-  return { data: board };
+  revalidatePath(`/organization/${orgId}`);
+  redirect(`/organization/${orgId}`);
 };
 
-export const createBoard = createSafeAction(CreateBoard, handler);
+export const deleteBoard = createSafeAction(DeleteBoard, handler);
